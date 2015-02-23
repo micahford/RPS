@@ -1,0 +1,93 @@
+public class ReverseTitForTat implements RoShamBot {
+
+	/** Returns the next move required to beat a tit-for-tat player
+	 * 
+	 * Switches to random play if after 250 games its performance is worse than the equilibrium
+	 * 
+	 * @param lastOpponentMove the action that was played by the opponent on
+	 *        the last round (this is disregarded).
+	 * @return the next action to play.
+	 */
+
+	int wins = 0;
+	int loses = 0;
+	int ties = 0;
+	int total = 0;
+
+	Action lastMove;
+
+	public Action getNextMove(Action lastOpponentMove) {
+		total++;
+		if ((wins/total) < 1.0/3.0 && total > 250){
+
+			if (lastOpponentMove == Action.ROCK){
+				if (isWin(lastMove, lastOpponentMove)){
+					wins++;
+				}
+				else if (isTie(lastMove, lastOpponentMove)){
+					ties++;
+				}
+				else {
+					loses++;
+				}
+				return Action.PAPER;
+
+			}
+			else if (lastOpponentMove == Action.PAPER){
+				if (isWin(lastMove, lastOpponentMove)){
+					wins++;
+				}
+				else if (isTie(lastMove, lastOpponentMove)){
+					ties++;
+				}
+				else {
+					loses++;
+				}
+				return Action.SCISSORS; 
+			}
+			else {
+				if (isWin(lastMove, lastOpponentMove)){
+					wins++;
+				}
+				else if (isTie(lastMove, lastOpponentMove)){
+					ties++;
+				}
+				else {
+					loses++;
+				}
+				return Action.ROCK;
+			}
+		}
+		else {
+			System.out.println("Random now");
+			
+			double coinFlip = Math.random();
+
+			if (coinFlip <= 1.0/3.0)
+				return Action.ROCK;
+			else if (coinFlip <= 2.0/3.0)
+				return Action.PAPER;
+			else
+				return Action.SCISSORS;
+		}
+	}
+	
+	//returns if a beats b.
+	private boolean isWin(Action a, Action b){
+		if(a==Action.ROCK) {
+			return (b==Action.SCISSORS);
+		}
+		else if (a==Action.PAPER){
+			return (b==Action.ROCK);
+		}
+		else{
+			return b==Action.PAPER;
+		}
+	}
+
+	
+	private boolean isTie(Action a, Action b){
+		return (a==b);
+	}
+
+}
