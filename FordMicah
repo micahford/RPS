@@ -1,0 +1,173 @@
+import java.util.*;
+
+/*This player keeps a history of 5 deep, and then tries to anticipate the opponents 
+ * next move by countering the most common move player over the past five moves.
+ * 
+ */
+
+public class FordMicah implements RoShamBot {
+
+	int keySize = 7;
+	
+	List<Action> history = new ArrayList<Action>();
+	Action[] lastFive = new Action[keySize];
+	boolean isRandom = false; // this is set to true if our player starts losing
+								// bad.
+	Action lastMove = null;
+	public int wins = 0, losses = 0, ties = 0, total = 0;
+	Map<Action[], Integer[]> m = new HashMap<Action[], Integer[]>();
+	
+	
+	public Action getNextMove(Action lastOpponentMove) {
+		history.add(lastOpponentMove);
+		Action move = null; //this is returned.
+		
+		if(!isRandom&&total>keySize){
+			Integer[] temp = new Integer[3]; temp[0] =0;temp[1]=0;temp[2]=0;
+			if(m.containsKey(lastFive)){
+				temp = m.get(lastFive);
+				System.out.println(temp.length);
+			} 
+			if(lastOpponentMove == Action.ROCK){
+				temp[0]++;
+			}
+			else if(lastOpponentMove == Action.PAPER){
+				temp[1]++;
+			}
+			else{
+				temp[2]++;
+			}
+			m.put(lastFive, temp);
+			
+			lastFive = updateLastFive(lastOpponentMove);
+			//now check if the last5 actions is a key. if so, get the appropriate action to play
+			if(m.containsKey(lastFive)){
+				Integer[] vals = m.get(lastFive);
+				Action mostCommon = getMaxVal(vals);
+				move = findWinningMove(mostCommon);
+
+			}
+			
+			else{
+				Action mostCommon = findMostCommon();
+				move = findWinningMove(mostCommon);
+			}
+			
+			
+			
+			
+			//Action next = searchForPattern();
+			//Action mostCommon = findMostCommon();
+		}
+		
+		
+		//if we are doing poorly, switch to NashBot
+		else{
+	        double coinFlip = Math.random();
+	        
+	        if (coinFlip <= 1.0/3.0)
+	            move = Action.ROCK;
+	        else if (coinFlip <= 2.0/3.0)
+	            move = Action.PAPER;
+	        else
+	            move = Action.SCISSORS;
+		}
+		//update our records:
+		total++;
+		if(isWin(lastMove, lastOpponentMove)) wins++;
+		else if (isTie(lastMove, lastOpponentMove)) ties++;
+		else losses++;
+		//check if we need to change to random (bc we're losing too much).
+		if(total>10000){
+			if(((double)losses/(double)total) > (1.0/3.0)){
+				isRandom=true;
+				System.out.println("Now using Nash Bot!");
+				
+			}
+		}
+		return move;
+
+	}
+
+	private Action getMaxVal(Integer[] vals) {
+		// TODO Auto-generated method stub
+		Action maxAction = Action.ROCK;
+		if(vals[0]>vals[1]){
+			if(vals[0]>vals[2]){
+				maxAction = Action.ROCK;
+			}
+		}
+		else if(vals[1]>vals[0]){
+			if(vals[1]>vals[2]){
+				maxAction = Action.PAPER;
+			}
+		}
+		else maxAction = Action.SCISSORS;
+		
+		return maxAction;
+	}
+
+	private Action[] updateLastFive(Action mostRecentMove) {
+		Action[] temp = new Action[keySize];
+		temp[keySize-1] = mostRecentMove;
+		for (int i = 1; i < lastFive.length; i++) {
+			temp[i-1] = lastFive[i];
+		}
+		return temp;
+	}
+
+	private Action findMostCommon() {
+		int rocks = 0, papers = 0, scissors = 0;
+		for (int i = 0; i < lastFive.length; i++) {
+			if (lastFive[i] == Action.ROCK)
+				rocks++;
+			if (lastFive[i] == Action.PAPER)
+				papers++;
+			if (lastFive[i] == Action.SCISSORS)
+				scissors++;
+		}
+		if (rocks > papers && rocks > scissors)
+			return Action.ROCK;
+		else if (papers > rocks && papers > scissors)
+			return Action.PAPER;
+		else
+			return Action.SCISSORS;
+	}
+	
+	//returns the action that beats "move"
+	private Action findWinningMove(Action move) {
+		if (move == Action.PAPER)
+			return Action.SCISSORS;
+		else if (move == Action.ROCK)
+			return Action.PAPER;
+		else
+			return Action.ROCK;
+	}
+	
+	//returns if a beats b.
+	private boolean isWin(Action a, Action b){
+		if(a==Action.ROCK) {
+			return (b==Action.SCISSORS);
+		}
+		else if (a==Action.PAPER){
+			return (b==Action.ROCK);
+		}
+		else{
+			return b==Action.PAPER;
+		}
+	}
+	
+	private boolean isTie(Action a, Action b){
+		return (a==b);
+	}
+	
+	public static void main(String[] args){
+		RoShamBot p1 = new FordMicah();
+		Action a = p1.getNextMove(Action.ROCK);
+		
+
+	}
+	
+	
+
+}
