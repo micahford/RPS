@@ -7,26 +7,30 @@ import java.util.*;
 
 public class FordMicah implements RoShamBot {
 
-	int keySize = 7;
+	int keySize = 3;
 	
 	List<Action> history = new ArrayList<Action>();
 	Action[] lastFive = new Action[keySize];
 	boolean isRandom = false; // this is set to true if our player starts losing
 								// bad.
 	Action lastMove = null;
-	public int wins = 0, losses = 0, ties = 0, total = 0;
-	Map<Action[], Integer[]> m = new HashMap<Action[], Integer[]>();
+	public int wins = 0, losses = 0, ties = 0, total = 0, safety = 0;
+	
+	Map<String, Integer[]> m = new HashMap<String, Integer[]>();
+	
 	
 	
 	public Action getNextMove(Action lastOpponentMove) {
 		history.add(lastOpponentMove);
 		Action move = null; //this is returned.
 		
+		String lastFiveSt = convertToString(lastFive);
+		
 		if(!isRandom&&total>keySize){
 			Integer[] temp = new Integer[3]; temp[0] =0;temp[1]=0;temp[2]=0;
-			if(m.containsKey(lastFive)){
-				temp = m.get(lastFive);
-				System.out.println(temp.length);
+			if(m.containsKey(lastFiveSt)){
+				temp = m.get(lastFiveSt);
+				//System.out.println(temp.length);
 			} 
 			if(lastOpponentMove == Action.ROCK){
 				temp[0]++;
@@ -37,12 +41,14 @@ public class FordMicah implements RoShamBot {
 			else{
 				temp[2]++;
 			}
-			m.put(lastFive, temp);
+			m.put(lastFiveSt, temp);
 			
 			lastFive = updateLastFive(lastOpponentMove);
+			lastFiveSt = convertToString(lastFive);
 			//now check if the last5 actions is a key. if so, get the appropriate action to play
-			if(m.containsKey(lastFive)){
-				Integer[] vals = m.get(lastFive);
+			if(m.containsKey(lastFiveSt)){
+				//System.out.println("here");
+				Integer[] vals = m.get(lastFiveSt);
 				Action mostCommon = getMaxVal(vals);
 				move = findWinningMove(mostCommon);
 
@@ -74,6 +80,7 @@ public class FordMicah implements RoShamBot {
 		}
 		//update our records:
 		total++;
+		safety = total%100;
 		if(isWin(lastMove, lastOpponentMove)) wins++;
 		else if (isTie(lastMove, lastOpponentMove)) ties++;
 		else losses++;
@@ -159,6 +166,31 @@ public class FordMicah implements RoShamBot {
 	
 	private boolean isTie(Action a, Action b){
 		return (a==b);
+	}
+	
+//	private boolean equals(List<Action> lastFive, List<Action> key){
+//		for (int i = 0; i < lastFive.size(); i++){
+//			if (lastFive.get(i) != key.get(i)){
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
+	
+	private String convertToString(Action[] lastFive){
+		String outPut = "";
+		for (int i = 0; i < lastFive.length; i++){
+			if (lastFive[i] == Action.ROCK){
+				outPut += "R";
+			}
+			else if (lastFive[i] == Action.PAPER){
+				outPut += "P";
+			}
+			else {
+				outPut += "S";
+			}
+		}
+		return outPut;
 	}
 	
 	public static void main(String[] args){
